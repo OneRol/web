@@ -100,9 +100,10 @@
       #0a0704 86%,
       #050506 100%);
     background-size:280% 280%;
-    filter:blur(60px);
-    opacity:0.55;
+    filter:blur(60px) brightness(calc(1 + var(--audio-bass, 0) * 0.7));
+    opacity:calc(0.55 + var(--audio-level, 0) * 0.3);
     animation:flow 22s ease-in-out infinite;
+    transition:filter 0.08s linear, opacity 0.08s linear;
   }
 
   .bg-atmosphere .blob{
@@ -110,8 +111,10 @@
     width:62vmax; height:62vmax;
     border-radius:50%;
     background:radial-gradient(circle, rgba(212,175,55,0.30), rgba(212,175,55,0) 68%);
-    filter:blur(6px);
+    filter:blur(6px) brightness(calc(1 + var(--audio-level, 0) * 0.6));
+    opacity:calc(0.8 + var(--audio-bass, 0) * 0.4);
     animation:drift 26s ease-in-out infinite;
+    transition:filter 0.08s linear, opacity 0.08s linear;
   }
 
   .bg-atmosphere .blob.b1{ top:-20%; left:-15%; }
@@ -131,8 +134,8 @@
   }
 
   @keyframes drift{
-    0%, 100%{ transform:translate(-6%, -6%) scale(1); }
-    50%{ transform:translate(9%, 10%) scale(1.18); }
+    0%, 100%{ transform:translate(-6%, -6%) scale(calc(1 + var(--audio-bass, 0) * 0.22)); }
+    50%{ transform:translate(9%, 10%) scale(calc(1.18 + var(--audio-bass, 0) * 0.22)); }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -624,6 +627,64 @@
     font-weight:600;
   }
 
+  /* ---------- CTA "THE END" (tema violeta/rosa, otro proyecto) ---------- */
+  .cta.cta-end{
+    background:radial-gradient(ellipse 120% 90% at 50% 15%, #4c1f78 0%, #26103f 45%, #100722 78%, #0a0416 100%);
+    border-top-color:#3a2154;
+  }
+
+  .end-particles{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+
+  .end-particle{
+    position:absolute;
+    left:var(--left);
+    bottom:-6%;
+    width:var(--size);
+    height:var(--size);
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(255,153,224,0.95), rgba(255,120,210,0.25) 60%, rgba(255,120,210,0) 75%);
+    box-shadow:0 0 6px 1px rgba(255,140,220,0.5);
+    opacity:0;
+    animation:end-rise var(--dur) linear infinite;
+    animation-delay:var(--delay);
+  }
+
+  @keyframes end-rise{
+    0%{ transform:translate(0, 0); opacity:0; }
+    8%{ opacity:0.95; }
+    88%{ opacity:0.5; }
+    100%{ transform:translate(var(--drift), -560px); opacity:0; }
+  }
+
+  .cta-end .cta-glow{
+    background:radial-gradient(560px 280px at 50% 100%, rgba(233,110,199,0.20), transparent 70%);
+  }
+
+  .cta-end .cta-eyebrow{ color:#c9a0ec; }
+
+  .cta-end .cta-link{ color:#f2e5ff; border-bottom-color:#4a2a68; }
+  .cta-end .cta-link:hover{ color:#ff8fd6; border-color:#a25fd6; }
+
+  .cta-end .cta-badge-text{ color:#b590d6; }
+  .cta-end .cta-badge-text strong{ color:#f2e5ff; }
+
+  .cta-end .logo-onetale{ border-color:#4a2a68; }
+  .cta-end .logo-onetale-fallback{
+    background:#1c0a30;
+    color:#ff8fd6;
+    border-color:#5c3080;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .end-particle{ animation:none; opacity:0.55; bottom:20%; }
+  }
+
   .site-foot{
     position:relative;
     padding:64px 6vw 96px;
@@ -867,7 +928,8 @@
 </section>
 
 <!-- ============ CTA A ONETALE ============ -->
-<section class="cta">
+<section class="cta cta-end">
+  <div class="end-particles" id="endParticles" aria-hidden="true"></div>
   <div class="cta-glow" aria-hidden="true"></div>
   <span class="eyebrow cta-eyebrow">¿Buscás lo que sigue en pie?</span>
 
@@ -908,7 +970,7 @@
 
   <div class="foot-divider" aria-hidden="true"></div>
 
-  <p class="foot-bottom">© <span id="footYear"></span> OneRol — Todos los derechos reservados.</p>
+  <p class="foot-bottom">© <span id="footYear"></span> OneRol — este sitio es un archivo, no un servicio activo</p>
 </footer>
 
 <!-- ============ REPRODUCTOR DE SOUNDTRACK ============ -->
@@ -1045,6 +1107,77 @@
   volume.addEventListener('input', () => {
     audio.volume = parseFloat(volume.value);
   });
+
+  // ---------- Fondo reactivo al sonido ----------
+  let audioCtx, analyser, freqData;
+  let smoothBass = 0, smoothLevel = 0;
+  const root = document.documentElement;
+
+  function setupAudioAnalyser(){
+    if (audioCtx) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.8;
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      // El audio tiene que seguir llegando a los parlantes después de pasar por el analizador.
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    } catch (err) {
+      console.warn('No se pudo iniciar el fondo reactivo al audio:', err);
+    }
+  }
+
+  function reactiveBgLoop(){
+    requestAnimationFrame(reactiveBgLoop);
+
+    let bass = 0, level = 0;
+    if (analyser && !audio.paused) {
+      analyser.getByteFrequencyData(freqData);
+      let bassSum = 0;
+      for (let i = 0; i < 8; i++) bassSum += freqData[i];
+      bass = (bassSum / 8) / 255;
+
+      let total = 0;
+      for (let i = 0; i < freqData.length; i++) total += freqData[i];
+      level = (total / freqData.length) / 255;
+    }
+
+    // Suavizado: sube rápido con el golpe de sonido, baja despacio, y decae solo a 0 en silencio/pausa.
+    smoothBass  += (bass  - smoothBass)  * 0.18;
+    smoothLevel += (level - smoothLevel) * 0.1;
+
+    root.style.setProperty('--audio-bass', smoothBass.toFixed(3));
+    root.style.setProperty('--audio-level', smoothLevel.toFixed(3));
+  }
+
+  reactiveBgLoop();
+
+  audio.addEventListener('play', () => {
+    setupAudioAnalyser();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }, { once: false });
+
+  // ---------- Partículas de "The End" en el CTA de Onetale ----------
+  const endParticles = document.getElementById('endParticles');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (endParticles && !reduceMotion) {
+    const TOTAL = 26;
+    for (let i = 0; i < TOTAL; i++) {
+      const p = document.createElement('span');
+      p.className = 'end-particle';
+      p.style.setProperty('--left', (Math.random() * 100).toFixed(1) + '%');
+      p.style.setProperty('--size', (Math.random() * 5 + 2.5).toFixed(1) + 'px');
+      p.style.setProperty('--dur', (Math.random() * 10 + 9).toFixed(1) + 's');
+      p.style.setProperty('--delay', (-Math.random() * 20).toFixed(1) + 's');
+      p.style.setProperty('--drift', (Math.random() * 70 - 35).toFixed(0) + 'px');
+      endParticles.appendChild(p);
+    }
+  }
 
   // ---------- Intro de video antes de ir a Onetale ----------
   const ctaLink      = document.getElementById('ctaLink');
