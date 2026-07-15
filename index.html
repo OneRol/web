@@ -1336,6 +1336,42 @@
 
   .game-footer strong{ color:var(--gold-dim); letter-spacing:0.1em; }
 
+  /* ---------- CHISPAZOS MISTERIOSOS (pistas del easter egg) ---------- */
+  .glitch-hint{
+    position:fixed;
+    z-index:250;
+    pointer-events:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold-bright);
+    text-shadow:
+      1px 0 rgba(255,60,60,0.5),
+      -1px 0 rgba(60,210,255,0.4),
+      0 0 12px rgba(212,175,55,0.35);
+    white-space:nowrap;
+    opacity:0;
+    mix-blend-mode:screen;
+    animation:glitch-hint-life 1.7s ease forwards;
+  }
+
+  @keyframes glitch-hint-life{
+    0%   { opacity:0;    transform:translate(0, 5px) skewX(0deg); }
+    6%   { opacity:0.9;  transform:translate(-2px, 0) skewX(-5deg); }
+    10%  { opacity:0.1;  transform:translate(2px, 0) skewX(4deg); }
+    15%  { opacity:0.85; transform:translate(0, 0) skewX(0deg); }
+    21%  { opacity:0.15; }
+    27%  { opacity:0.8;  }
+    78%  { opacity:0.8;  transform:translate(0, 0); }
+    88%  { opacity:0;    transform:translate(1px, -4px); }
+    100% { opacity:0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .glitch-hint{ display:none; }
+  }
+
 </style>
 </head>
 <body>
@@ -2158,7 +2194,8 @@
     const ctx         = canvas ? canvas.getContext('2d') : null;
     if (!overlay || !ctx) return;
 
-    const BEST_KEY = 'onerolCarcerDriveBest';
+    const BEST_KEY  = 'onerolCarcerDriveBest';
+    const FOUND_KEY = 'onerolCarcerDriveFound';
     let best = 0;
     try { best = parseFloat(localStorage.getItem(BEST_KEY)) || 0; } catch (e) {}
 
@@ -2168,6 +2205,8 @@
       resetGame();
       showMsg(startMsg);
       updateHud();
+      // Ya lo encontró: dejamos de mandarle pistas por la página.
+      try { localStorage.setItem(FOUND_KEY, '1'); } catch (e) {}
     }
 
     function closeGame(){
@@ -2379,6 +2418,89 @@
 
     resetGame();
     draw();
+  })();
+</script>
+
+<!-- ---------- CHISPAZOS MISTERIOSOS (pistas del easter egg) ---------- -->
+<script>
+  (function initGlitchHints(){
+    const FOUND_KEY = 'onerolCarcerDriveFound';
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    function isFound(){
+      try { return localStorage.getItem(FOUND_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    // No lo molestamos con pistas si ya lo encontró.
+    if (isFound()) return;
+
+    // Frases de ambiente (relleno, para que no sea obvio) y la pista real,
+    // que se arma de a partes: primero "escribe", después "carcer".
+    const AMBIENT = [
+      'todavía está acá',
+      'alguien lo dejó encendido',
+      'no cerró bien la puerta',
+      'quedó algo corriendo',
+      'seguí mirando',
+      '¿escuchaste eso?',
+      'no se apagó del todo',
+      'hay algo más'
+    ];
+    const HINTS = ['escribe', 'c a r c e r'];
+    let hintStep = 0;
+
+    function pickMessage(){
+      // De vez en cuando suelta una pista real en vez de solo ambiente.
+      if (Math.random() < 0.35) {
+        const msg = HINTS[hintStep % HINTS.length];
+        hintStep++;
+        return msg;
+      }
+      return AMBIENT[Math.floor(Math.random() * AMBIENT.length)];
+    }
+
+    function isBusy(){
+      const bootActive    = document.documentElement.classList.contains('boot-active');
+      const gameOverlay   = document.getElementById('gameOverlay');
+      const introOverlay  = document.getElementById('introOverlay');
+      const gamePlaying   = gameOverlay && gameOverlay.classList.contains('active');
+      const introPlaying  = introOverlay && introOverlay.classList.contains('active');
+      return bootActive || gamePlaying || introPlaying;
+    }
+
+    function showHint(){
+      if (isBusy()) return;
+
+      const el = document.createElement('div');
+      el.className = 'glitch-hint';
+      el.textContent = pickMessage();
+      el.setAttribute('aria-hidden', 'true');
+
+      // Posición aleatoria, lejos de los bordes para no chocar con el
+      // reproductor de audio ni con botones fijos.
+      const top  = 14 + Math.random() * 55;
+      const left = 8  + Math.random() * 70;
+      el.style.top  = top + 'vh';
+      el.style.left = left + 'vw';
+
+      document.body.appendChild(el);
+      el.addEventListener('animationend', function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, { once: true });
+    }
+
+    function scheduleNext(){
+      if (isFound()) return; // ya lo encontró, dejamos de insistir
+
+      const delay = 9000 + Math.random() * 14000; // cada ~9-23s, errático
+      window.setTimeout(function () {
+        if (!isFound() && Math.random() < 0.75) showHint();
+        scheduleNext();
+      }, delay);
+    }
+
+    scheduleNext();
   })();
 </script>
 
