@@ -142,6 +142,217 @@
     .bg-atmosphere .flow, .bg-atmosphere .blob{ animation:none; }
   }
 
+  /* ---------- BOOT INTRO (consola de comandos) ---------- */
+  html.boot-active, html.boot-active body{ overflow:hidden; }
+
+  .boot-intro{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    transition:opacity 0.5s ease;
+  }
+
+  .boot-intro.boot-hide{
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .term-wrap{
+    position:relative;
+    z-index:1;
+    width:min(640px, 92vw);
+  }
+
+  .boot-intro.boot-explode .term-wrap{
+    animation:boot-shake 0.38s linear;
+  }
+
+  .term-box{
+    background:rgba(6,6,8,0.94);
+    border:1px solid var(--gold-dim);
+    border-radius:8px;
+    box-shadow:0 0 40px rgba(212,175,55,0.12), 0 0 0 1px rgba(212,175,55,0.05) inset;
+    overflow:hidden;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .boot-intro.boot-explode .term-box{
+    animation:term-glitch-out 0.4s forwards;
+  }
+
+  .term-header{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,0.02);
+  }
+
+  .term-dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--gold-dim);
+  }
+  .term-dot:nth-child(2){ background:var(--gold); }
+  .term-dot:nth-child(3){ background:var(--gold-bright); }
+
+  .term-title{
+    margin-left:6px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .term-output{
+    padding:16px 18px;
+    height:min(50vh, 380px);
+    overflow-y:auto;
+    overflow-x:auto;
+    font-size:11.5px;
+    line-height:1.6;
+    white-space:pre;
+    scrollbar-width:thin;
+    scrollbar-color:var(--gold-dim) transparent;
+  }
+
+  .term-output::-webkit-scrollbar{ width:6px; height:6px; }
+  .term-output::-webkit-scrollbar-track{ background:transparent; }
+  .term-output::-webkit-scrollbar-thumb{ background:var(--gold-dim); border-radius:4px; }
+
+  .term-out-line{
+    color:var(--text-dim);
+    opacity:0;
+    animation:term-line-in 0.15s ease forwards;
+  }
+
+  .term-out-line.banner{ color:var(--gold-dim); }
+  .term-out-line.ok{ color:var(--gold); }
+  .term-out-line.warn{ color:var(--gold-bright); }
+
+  .term-prompt-line{
+    color:var(--gold-bright);
+    white-space:pre;
+  }
+
+  .term-prompt-sym{
+    color:var(--gold-dim);
+    margin-right:7px;
+  }
+
+  .term-typed{ color:var(--gold-bright); }
+
+  .term-cursor{
+    display:inline-block;
+    color:var(--gold-bright);
+    margin-left:2px;
+    animation:term-blink 1s step-end infinite;
+  }
+
+  .term-hint-inline{
+    margin-top:4px;
+    font-size:10px;
+    letter-spacing:0.13em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    opacity:0;
+    cursor:pointer;
+    transition:opacity 0.3s ease, color 0.2s ease;
+  }
+
+  .term-hint-inline.show{
+    opacity:0.6;
+    animation:term-hint-pulse 1.6s ease-in-out infinite;
+  }
+
+  .term-hint-inline:hover{ color:var(--gold-bright); }
+
+  @keyframes term-line-in{
+    from{ opacity:0; transform:translateY(2px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .boot-flash{
+    position:absolute; inset:0;
+    z-index:3;
+    background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95), rgba(246,216,120,0.55) 35%, rgba(212,175,55,0) 70%);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .boot-flash.flash{
+    animation:boot-flash-anim 0.5s ease-out forwards;
+  }
+
+  .boot-scanlines{
+    position:absolute; inset:0;
+    z-index:2;
+    background:repeating-linear-gradient(to bottom,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      transparent 1px,
+      transparent 3px);
+    mix-blend-mode:overlay;
+    opacity:0;
+    animation:boot-scan-fade 1.2s ease forwards;
+    animation-delay:0.1s;
+    pointer-events:none;
+  }
+
+  .boot-vignette{
+    position:absolute; inset:0;
+    z-index:1;
+    background:radial-gradient(circle at 50% 50%, transparent 38%, rgba(0,0,0,0.75) 100%);
+    pointer-events:none;
+  }
+
+  @keyframes boot-scan-fade{
+    to{ opacity:0.4; }
+  }
+
+  @keyframes term-blink{
+    0%, 49%{ opacity:1; }
+    50%, 100%{ opacity:0; }
+  }
+
+  @keyframes term-hint-pulse{
+    0%, 100%{ opacity:0.5; }
+    50%{ opacity:1; }
+  }
+
+  @keyframes boot-shake{
+    0%, 100%{ transform:translate(0, 0); }
+    15%{ transform:translate(-6px, 3px); }
+    30%{ transform:translate(5px, -4px); }
+    45%{ transform:translate(-4px, 5px); }
+    60%{ transform:translate(6px, -2px); }
+    75%{ transform:translate(-3px, 2px); }
+    90%{ transform:translate(2px, -3px); }
+  }
+
+  @keyframes term-glitch-out{
+    0%{   opacity:1;   filter:none;                        transform:skewX(0deg) scale(1); }
+    30%{  opacity:1;   filter:contrast(2) saturate(0);      transform:skewX(4deg) scale(1); }
+    60%{  opacity:0.6; filter:contrast(1.4);                transform:skewX(-3deg) scale(1.03); }
+    100%{ opacity:0;   filter:none;                         transform:scale(0.9); }
+  }
+
+  @keyframes boot-flash-anim{
+    0%{   opacity:0; transform:scale(0.3); }
+    25%{  opacity:1; transform:scale(1.4); }
+    100%{ opacity:0; transform:scale(2.2); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .boot-intro{ display:none; }
+  }
+
   .sr-only{
     position:absolute;
     width:1px; height:1px;
@@ -857,6 +1068,214 @@
 </head>
 <body>
 
+<div class="boot-intro" id="bootIntro" aria-hidden="true">
+  <div class="term-wrap">
+    <div class="term-box">
+      <div class="term-header">
+        <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+        <span class="term-title">MTA:SA — server console</span>
+      </div>
+      <div class="term-output" id="termOutput"></div>
+    </div>
+  </div>
+  <div class="boot-flash" id="bootFlash"></div>
+  <div class="boot-scanlines"></div>
+  <div class="boot-vignette"></div>
+</div>
+<script>
+  // Corre acá arriba, apenas se parsea, para que en visitas repetidas dentro
+  // de la misma sesión no llegue a pintarse ni un frame de la intro.
+  (function () {
+    var boot = document.getElementById('bootIntro');
+    if (!boot) return;
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var alreadySeen = false;
+    try { alreadySeen = sessionStorage.getItem('onerolBootSeen') === '1'; } catch (e) {}
+
+    if (alreadySeen || reduceMotion) {
+      boot.parentNode.removeChild(boot);
+      return;
+    }
+
+    try { sessionStorage.setItem('onerolBootSeen', '1'); } catch (e) {}
+
+    document.documentElement.classList.add('boot-active');
+
+    var outputEl = document.getElementById('termOutput');
+    var flashEl  = document.getElementById('bootFlash');
+    var COMMAND  = 'kill onerol';
+
+    function pad(n){ return n < 10 ? '0' + n : '' + n; }
+    function nowStr(){
+      var d = new Date();
+      return '[' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ']';
+    }
+
+    function appendLine(text, cls){
+      var line = document.createElement('div');
+      line.className = 'term-out-line' + (cls ? ' ' + cls : '');
+      line.textContent = text.length ? text : '\u00A0';
+      outputEl.appendChild(line);
+      outputEl.scrollTop = outputEl.scrollHeight;
+      return line;
+    }
+
+    var BANNER_LINES = [
+      ['==================================================================', 'banner'],
+      ['= Multi Theft Auto: San Andreas v1.6', 'banner'],
+      ['==================================================================', 'banner'],
+      ['= Server name      : OneRol - RolePlay en Español', 'banner'],
+      ['= Server IP address: auto', 'banner'],
+      ['= Server port      : 22003', 'banner'],
+      ['=', 'banner'],
+      ['= Log file         : .. 1.6/server/mods/deathmatch/logs/server.log', 'banner'],
+      ['= Maximum players  : 500', 'banner'],
+      ['= HTTP port        : 22005', 'banner'],
+      ['= Voice Chat       : Disabled', 'banner'],
+      ['= Bandwidth saving : Medium', 'banner'],
+      ['==================================================================', 'banner']
+    ];
+
+    var BOOT_LOG = [
+      ['{t} Resources: 214 loaded, 0 failed', ''],
+      ['{t} Starting resources...', ''],
+      ['{t} Server minclientversion is now 1.6.0-9.24043.0', ''],
+      ['{t} Iniciando recurso: or_core', ''],
+      ["{t} startResource: Resource 'or_core' started", 'ok'],
+      ['{t} Iniciando recurso: or_loader', ''],
+      ["{t} startResource: Resource 'or_loader' started", 'ok'],
+      ['{t} Iniciando recurso: or_carcer_city', ''],
+      ["{t} startResource: Resource 'or_carcer_city' started", 'ok'],
+      ['{t} Iniciando recurso: or_trains', ''],
+      ["{t} startResource: Resource 'or_trains' started", 'ok'],
+      ['{t} Iniciando recurso: or_wanted_hud', ''],
+      ["{t} startResource: Resource 'or_wanted_hud' started", 'ok'],
+      ['{t} Iniciando recurso: or_mumble_voice', ''],
+      ["{t} startResource: Resource 'or_mumble_voice' started", 'ok'],
+      ['{t} Server started and is ready to accept connections!', 'ok']
+    ];
+
+    var STOP_LOG = [
+      ["{t} WARNING: comando recibido desde consola: kill onerol", 'warn'],
+      ['{t} Deteniendo recursos...', ''],
+      ["{t} stopResource: 'or_mumble_voice' stopped", ''],
+      ["{t} stopResource: 'or_wanted_hud' stopped", ''],
+      ["{t} stopResource: 'or_trains' stopped", ''],
+      ["{t} stopResource: 'or_carcer_city' stopped", ''],
+      ["{t} stopResource: 'or_loader' stopped", ''],
+      ["{t} stopResource: 'or_core' stopped", ''],
+      ['{t} Server stopped.', 'warn']
+    ];
+
+    function printLines(lines, staggerFn, onDone){
+      var i = 0;
+      function step(){
+        if (i >= lines.length) { if (onDone) onDone(); return; }
+        var text = lines[i][0].replace('{t}', nowStr());
+        appendLine(text, lines[i][1]);
+        i++;
+        window.setTimeout(step, staggerFn());
+      }
+      step();
+    }
+
+    var typingDone = false;
+    var executed   = false;
+    var hintRef    = null;
+
+    function typeCommand(typedEl, hintEl, cursorEl){
+      var i = 0;
+      function next(){
+        if (i < COMMAND.length) {
+          typedEl.textContent += COMMAND.charAt(i);
+          i++;
+          outputEl.scrollTop = outputEl.scrollHeight;
+          window.setTimeout(next, 55 + Math.random() * 55);
+        } else {
+          typingDone = true;
+          hintEl.classList.add('show');
+          window.setTimeout(function(){ if (!executed) runExec(); }, 3600);
+        }
+      }
+      window.setTimeout(next, 300);
+    }
+
+    function showPrompt(){
+      var promptLine = document.createElement('div');
+      promptLine.className = 'term-out-line term-prompt-line';
+
+      var sym = document.createElement('span');
+      sym.className = 'term-prompt-sym';
+      sym.textContent = '>';
+
+      var typed = document.createElement('span');
+      typed.className = 'term-typed';
+
+      var cursor = document.createElement('span');
+      cursor.className = 'term-cursor';
+      cursor.textContent = '▌';
+
+      promptLine.appendChild(sym);
+      promptLine.appendChild(typed);
+      promptLine.appendChild(cursor);
+      outputEl.appendChild(promptLine);
+
+      var hint = document.createElement('div');
+      hint.className = 'term-hint-inline';
+      hint.setAttribute('role', 'button');
+      hint.setAttribute('tabindex', '0');
+      hint.textContent = 'Enter ↵ para ejecutar';
+      outputEl.appendChild(hint);
+      outputEl.scrollTop = outputEl.scrollHeight;
+
+      function trigger(){ runExec(); }
+      window.addEventListener('keydown', function onKeyDown(e){
+        if (e.key === 'Enter') { window.removeEventListener('keydown', onKeyDown); trigger(); }
+      });
+      hint.addEventListener('click', trigger);
+      hint.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') trigger();
+      });
+
+      typeCommand(typed, hint, cursor);
+
+      hintRef = hint;
+    }
+
+    function runExec(){
+      if (executed || !typingDone) return;
+      executed = true;
+
+      if (hintRef) hintRef.classList.remove('show');
+
+      printLines(STOP_LOG, function () { return 220 + Math.random() * 140; }, function () {
+        window.setTimeout(function () {
+          boot.classList.add('boot-explode');
+          flashEl.classList.add('flash');
+        }, 380);
+
+        window.setTimeout(function () {
+          boot.classList.add('boot-hide');
+          document.documentElement.classList.remove('boot-active');
+          boot.addEventListener('transitionend', function () {
+            if (boot.parentNode) boot.parentNode.removeChild(boot);
+          }, { once: true });
+        }, 380 + 380);
+      });
+    }
+
+    window.setTimeout(function () {
+      printLines(BANNER_LINES, function () { return 16; }, function () {
+        printLines(BOOT_LOG, function () { return 28 + Math.random() * 42; }, function () {
+          appendLine('', '');
+          showPrompt();
+        });
+      });
+    }, 250);
+  })();
+</script>
+
 <div class="bg-atmosphere" aria-hidden="true">
   <div class="flow"></div>
   <div class="blob b1"></div>
@@ -1078,6 +1497,14 @@
   audio.volume = parseFloat(volume.value);
 
   playBtn.addEventListener('click', () => {
+    // El AudioContext se crea/retoma acá, en el mismo click del usuario.
+    // Si se arma más tarde (ej. dentro del evento 'play', que es async) algunos
+    // navegadores lo dejan "suspendido" y el audio queda mudo aunque se vea reproduciendo.
+    setupAudioAnalyser();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+
     if (audio.paused) {
       audio.play().catch(() => {
         // No hay archivo de audio cargado todavía en assets/soundtrack.mp3
@@ -1117,6 +1544,7 @@
     if (audioCtx) return;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
       audioCtx = new AC();
       const source = audioCtx.createMediaElementSource(audio);
       analyser = audioCtx.createAnalyser();
@@ -1127,7 +1555,9 @@
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
     } catch (err) {
-      console.warn('No se pudo iniciar el fondo reactivo al audio:', err);
+      console.warn('No se pudo iniciar el fondo reactivo al audio (el soundtrack sigue sonando igual):', err);
+      audioCtx = null;
+      analyser = null;
     }
   }
 
@@ -1155,11 +1585,6 @@
   }
 
   reactiveBgLoop();
-
-  audio.addEventListener('play', () => {
-    setupAudioAnalyser();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  }, { once: false });
 
   // ---------- Partículas de "The End" en el CTA de Onetale ----------
   const endParticles = document.getElementById('endParticles');
