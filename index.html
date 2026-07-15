@@ -1243,11 +1243,29 @@
       hintRef = hint;
     }
 
+    // Arranca el soundtrack apenas se ejecuta "kill onerol". Se llama en el
+    // mismo stack del click/Enter del usuario para que el navegador lo
+    // considere gesto del usuario y no bloquee el autoplay con sonido.
+    function startSoundtrackOnExec(){
+      try {
+        if (typeof setupAudioAnalyser === 'function') setupAudioAnalyser();
+        if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(function () {});
+        }
+        if (typeof audio !== 'undefined' && audio && audio.paused) {
+          audio.play().catch(function (err) {
+            console.warn('No se pudo autorreproducir el soundtrack al ejecutar kill onerol:', err);
+          });
+        }
+      } catch (e) {}
+    }
+
     function runExec(){
       if (executed || !typingDone) return;
       executed = true;
 
       if (hintRef) hintRef.classList.remove('show');
+      startSoundtrackOnExec();
 
       printLines(STOP_LOG, function () { return 220 + Math.random() * 140; }, function () {
         window.setTimeout(function () {
