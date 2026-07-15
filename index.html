@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneRol — Archivo del proyecto</title>
+<meta name="description" content="OneRol. Roleplay para GTA: San Andreas en Carcer City. Desarrollo cerrado.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg:            #050506;
+    --bg-panel:      #0c0c0f;
+    --gold:          #d4af37;
+    --gold-bright:   #f6d878;
+    --gold-dim:      #6e5a20;
+    --line:          #211d13;
+    --text:          #eae6da;
+    --text-dim:      #948d7c;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--gold); color:#050506; }
+
+  a{ color:inherit; text-decoration:none; }
+
+  :focus-visible{
+    outline:2px solid var(--gold-bright);
+    outline-offset:3px;
+  }
+
+  /* ---------- scrollbar ---------- */
+  html{
+    scrollbar-width:thin;
+    scrollbar-color:var(--gold-dim) var(--bg);
+  }
+
+  ::-webkit-scrollbar{
+    width:11px;
+    height:11px;
+  }
+
+  ::-webkit-scrollbar-track{
+    background:var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb{
+    background-color:var(--gold-dim);
+    background-image:linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 60%, var(--gold-dim) 100%);
+    background-clip:padding-box;
+    border:3px solid var(--bg);
+    border-radius:999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover{
+    background-image:linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 60%, var(--gold) 100%);
+  }
+
+  ::-webkit-scrollbar-thumb:active{
+    background-image:linear-gradient(180deg, var(--gold-bright), var(--gold-bright));
+  }
+
+  ::-webkit-scrollbar-corner{
+    background:var(--bg);
+  }
+
+  /* ---------- fondo animado negro / dorado en movimiento ---------- */
+  .bg-atmosphere{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    overflow:hidden;
+    background:var(--bg);
+  }
+
+  .bg-atmosphere .flow{
+    position:absolute;
+    inset:-15%;
+    background:linear-gradient(120deg,
+      #050506 0%,
+      #0a0704 14%,
+      #362707 30%,
+      #9c7a1f 42%,
+      #f6d878 50%,
+      #9c7a1f 58%,
+      #362707 70%,
+      #0a0704 86%,
+      #050506 100%);
+    background-size:280% 280%;
+    filter:blur(60px);
+    opacity:0.55;
+    animation:flow 22s ease-in-out infinite;
+  }
+
+  .bg-atmosphere .blob{
+    position:absolute;
+    width:62vmax; height:62vmax;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(212,175,55,0.30), rgba(212,175,55,0) 68%);
+    filter:blur(6px);
+    animation:drift 26s ease-in-out infinite;
+  }
+
+  .bg-atmosphere .blob.b1{ top:-20%; left:-15%; }
+
+  .bg-atmosphere .blob.b2{
+    width:48vmax; height:48vmax;
+    right:-16%; bottom:-18%;
+    background:radial-gradient(circle, rgba(140,108,20,0.26), rgba(140,108,20,0) 68%);
+    animation-duration:32s;
+    animation-direction:reverse;
+  }
+
+  @keyframes flow{
+    0%{ background-position:0% 50%; }
+    50%{ background-position:100% 50%; }
+    100%{ background-position:0% 50%; }
+  }
+
+  @keyframes drift{
+    0%, 100%{ transform:translate(-6%, -6%) scale(1); }
+    50%{ transform:translate(9%, 10%) scale(1.18); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg-atmosphere .flow, .bg-atmosphere .blob{ animation:none; }
+  }
+
+  .sr-only{
+    position:absolute;
+    width:1px; height:1px;
+    padding:0; margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    color:var(--gold-dim);
+  }
+
+  /* ---------- grain overlay ---------- */
+  .grain{
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:50;
+    opacity:0.05;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:6vh 6vw;
+    overflow:hidden;
+  }
+
+  .spotlight{ display:none; }
+
+  .hero-content{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; }
+
+  .logo-wrap{
+    width:min(360px, 62vw);
+    margin-bottom:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    animation:logo-glow 5s ease-in-out infinite;
+  }
+
+  @keyframes logo-glow{
+    0%, 100%{ filter:drop-shadow(0 0 22px rgba(212,175,55,0.18)); }
+    50%{ filter:drop-shadow(0 0 42px rgba(212,175,55,0.38)); }
+  }
+
+  .logo-main{
+    width:100%;
+    height:auto;
+    display:block;
+    object-fit:contain;
+  }
+
+  .logo-fallback{
+    width:100%;
+    aspect-ratio:798 / 716;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(48px, 10vw, 96px);
+    letter-spacing:0.05em;
+    color:var(--gold);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .logo-wrap{ animation:none; }
+  }
+
+  .title-eyebrow{ margin-bottom:18px; }
+
+  .subtitle{
+    margin-top:18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .subtitle span{ color:var(--gold-dim); padding:0 10px; }
+
+  .scroll-cue{
+    position:absolute;
+    bottom:36px; left:50%;
+    transform:translateX(-50%);
+    width:1px; height:52px;
+    background:linear-gradient(var(--gold-dim), transparent);
+    z-index:1;
+  }
+  .scroll-cue::after{
+    content:"";
+    position:absolute; left:-2px; top:0;
+    width:5px; height:5px; border-radius:50%;
+    background:var(--gold);
+    animation:drip 2.4s ease-in-out infinite;
+  }
+  @keyframes drip{
+    0%{ top:0; opacity:0; }
+    20%{ opacity:1; }
+    90%{ opacity:1; }
+    100%{ top:48px; opacity:0; }
+  }
+
+  /* ---------- PLAQUE / STATEMENT ---------- */
+  .plaque-section{
+    padding:14vh 6vw;
+    display:flex;
+    justify-content:center;
+  }
+
+  .plaque{
+    max-width:640px;
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--bg-panel);
+    padding:56px 44px;
+    position:relative;
+    text-align:center;
+  }
+
+  .plaque::before, .plaque::after{
+    content:"";
+    position:absolute;
+    width:22px; height:22px;
+    border:1px solid var(--gold-dim);
+    z-index:1;
+  }
+  .plaque::before{ top:-1px; left:-1px; border-right:none; border-bottom:none; }
+  .plaque::after{ bottom:-1px; right:-1px; border-left:none; border-top:none; }
+
+  .plaque-glow{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(212,175,55,0.05), transparent 45%);
+    pointer-events:none;
+  }
+
+  .plaque .eyebrow{ display:block; margin-bottom:22px; position:relative; }
+  .plaque h2{ position:relative; }
+  .plaque p{ position:relative; }
+  .plaque .stamp{ position:relative; }
+
+  .plaque h2{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(30px, 5vw, 44px);
+    letter-spacing:0.03em;
+    color:var(--gold-bright);
+    margin-bottom:22px;
+  }
+
+  .plaque p{
+    font-size:15.5px;
+    line-height:1.75;
+    color:var(--text-dim);
+    max-width:480px;
+    margin:0 auto 14px;
+  }
+
+  .plaque p:last-of-type{ margin-bottom:0; }
+
+  .plaque strong{ color:var(--text); font-weight:600; }
+
+  .stamp{
+    margin-top:30px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    color:var(--gold-dim);
+  }
+
+  /* ---------- CRÉDITOS ---------- */
+  .credits-section{
+    padding:14vh 6vw;
+    text-align:center;
+    border-top:1px solid var(--line);
+  }
+
+  .credits-section .eyebrow{ display:block; margin-bottom:16px; }
+
+  .credits-section h2{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(30px, 5vw, 44px);
+    letter-spacing:0.03em;
+    color:var(--gold-bright);
+    margin-bottom:14px;
+  }
+
+  .credits-intro{
+    font-size:14.5px;
+    color:var(--text-dim);
+    max-width:440px;
+    margin:0 auto 40px;
+    line-height:1.7;
+  }
+
+  .credits-panel{
+    position:relative;
+    max-width:620px;
+    margin:0 auto;
+    height:clamp(320px, 48vh, 460px);
+    overflow:hidden;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+  }
+
+  .credits-panel::before, .credits-panel::after{
+    content:"";
+    position:absolute;
+    width:18px; height:18px;
+    border:1px solid var(--gold-dim);
+    z-index:2;
+  }
+  .credits-panel::before{ top:8px; left:8px; border-right:none; border-bottom:none; }
+  .credits-panel::after{ bottom:8px; right:8px; border-left:none; border-top:none; }
+
+  .credits-track{
+    position:absolute;
+    top:100%;
+    left:0; right:0;
+    animation:credits-crawl linear infinite;
+    animation-duration:var(--credits-duration, 30s);
+  }
+
+  .credits-panel:hover .credits-track,
+  .credits-panel:focus-within .credits-track{
+    animation-play-state:paused;
+  }
+
+  @keyframes credits-crawl{
+    0%{ transform:translateY(0); }
+    100%{ transform:translateY(calc(-1 * var(--credits-h, 100%))); }
+  }
+
+  .credits-table{
+    width:100%;
+    border-collapse:collapse;
+    padding:0 28px;
+  }
+
+  .credits-table td{
+    padding:16px 28px;
+    font-size:14px;
+    vertical-align:middle;
+  }
+
+  .credits-table td.role{
+    text-align:left;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold-dim);
+    width:56%;
+  }
+
+  .credits-table td.name{
+    text-align:right;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    letter-spacing:0.01em;
+    color:var(--text);
+  }
+
+  .credits-thanks{
+    margin-top:28px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .credits-track{ animation:none; position:static; top:auto; }
+    .credits-panel{ height:auto; -webkit-mask-image:none; mask-image:none; overflow:visible; }
+    .credits-track table[aria-hidden="true"]{ display:none; }
+  }
+
+  @media (max-width:480px){
+    .credits-table td{ padding:13px 16px; font-size:13px; }
+    .credits-table td.role{ width:52%; letter-spacing:0.06em; }
+  }
+
+  /* ---------- AUDIO PLAYER ---------- */
+  .player-dock{
+    position:fixed;
+    left:20px; bottom:20px;
+    z-index:40;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:rgba(5,5,6,0.94);
+    backdrop-filter:blur(12px);
+    border:1px solid var(--line);
+    padding:10px 16px 10px 10px;
+    border-radius:999px;
+    max-width:calc(100vw - 40px);
+  }
+
+  .play-btn{
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1px solid var(--gold-dim);
+    background:transparent;
+    color:var(--gold-bright);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex:none;
+    transition:background 0.2s ease, transform 0.15s ease;
+  }
+  .play-btn:hover{ background:rgba(212,175,55,0.1); transform:scale(1.04); }
+  .play-btn svg{ width:14px; height:14px; }
+
+  .eq{
+    display:flex; align-items:flex-end; gap:3px;
+    height:18px; flex:none;
+  }
+  .eq i{
+    display:block;
+    width:3px;
+    background:var(--gold);
+    border-radius:1px;
+    height:4px;
+    animation:eq 1s ease-in-out infinite;
+    animation-play-state:paused;
+    opacity:0.55;
+  }
+  .player-dock.playing .eq i{ animation-play-state:running; opacity:1; }
+  .eq i:nth-child(1){ animation-delay:0s; }
+  .eq i:nth-child(2){ animation-delay:0.15s; }
+  .eq i:nth-child(3){ animation-delay:0.3s; }
+  .eq i:nth-child(4){ animation-delay:0.45s; }
+  @keyframes eq{
+    0%,100%{ height:4px; }
+    50%{ height:17px; }
+  }
+
+  .track-meta{
+    display:flex; flex-direction:column;
+    line-height:1.25;
+    max-width:150px;
+    overflow:hidden;
+  }
+  .track-title{
+    font-size:12px; font-weight:600;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .track-sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--text-dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .volume{
+    -webkit-appearance:none;
+    appearance:none;
+    width:64px; height:2px;
+    background:var(--line);
+    border-radius:2px;
+    outline:none;
+    flex:none;
+  }
+  .volume::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:10px; height:10px;
+    border-radius:50%;
+    background:var(--gold);
+    cursor:pointer;
+  }
+  .volume::-moz-range-thumb{
+    width:10px; height:10px; border:none; border-radius:50%;
+    background:var(--gold); cursor:pointer;
+  }
+
+  @media (max-width:560px){
+    .track-meta{ display:none; }
+  }
+
+  /* ---------- FOOTER CTA ---------- */
+  .cta{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:22px;
+    padding:12vh 6vw 14vh;
+    text-align:center;
+    border-top:1px solid var(--line);
+    overflow:hidden;
+  }
+
+  .cta-glow{
+    position:absolute; inset:0;
+    background:radial-gradient(600px 260px at 50% 100%, rgba(212,175,55,0.10), transparent 70%);
+    pointer-events:none;
+    transition:opacity 0.4s ease;
+    opacity:0.6;
+  }
+  .cta:hover .cta-glow{ opacity:1; }
+
+  .cta-eyebrow{ position:relative; z-index:1; }
+
+  .cta-link{
+    position:relative; z-index:1;
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(26px, 5vw, 46px);
+    letter-spacing:0.02em;
+    color:var(--text);
+    display:inline-flex;
+    align-items:center;
+    gap:16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+    transition:color 0.25s ease, border-color 0.25s ease, letter-spacing 0.25s ease;
+  }
+  .cta-link:hover{
+    color:var(--gold-bright);
+    border-color:var(--gold-dim);
+    letter-spacing:0.035em;
+  }
+
+  .cta-link svg{
+    width:22px; height:22px;
+    transition:transform 0.25s ease;
+  }
+  .cta-link:hover svg{ transform:translateX(6px); }
+
+  .cta-badge{
+    position:relative; z-index:1;
+    display:flex; align-items:center; gap:12px;
+  }
+
+  .logo-onetale{
+    width:34px; height:34px;
+    border-radius:8px;
+    object-fit:cover;
+    border:1px solid var(--line);
+  }
+
+  .logo-onetale-fallback{
+    width:34px; height:34px;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:12px;
+    color:var(--gold);
+    background:#101012;
+    border:1px solid var(--gold-dim);
+  }
+
+  .cta-badge-text{
+    text-align:left;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    line-height:1.5;
+  }
+  .cta-badge-text strong{
+    display:block;
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    letter-spacing:0;
+    color:var(--text);
+    font-weight:600;
+  }
+
+  .site-foot{
+    position:relative;
+    padding:64px 6vw 96px;
+    text-align:center;
+    border-top:1px solid var(--line);
+    background:var(--bg-panel);
+  }
+
+  .foot-top{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-bottom:30px;
+  }
+
+  .foot-mark{
+    width:52px; height:52px;
+    border-radius:16px;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform 0.25s ease, filter 0.25s ease;
+    filter:drop-shadow(0 0 0 rgba(212,175,55,0));
+  }
+
+  .foot-mark img{
+    width:100%; height:100%;
+    display:block;
+    object-fit:cover;
+  }
+
+  .foot-mark .foot-mark-fallback{
+    width:100%; height:100%;
+    border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--gold);
+    font-family:'Bebas Neue', sans-serif;
+    font-size:16px;
+    letter-spacing:0.04em;
+    color:#050506;
+  }
+
+  .foot-mark:hover{
+    transform:translateY(-3px);
+    filter:drop-shadow(0 6px 16px rgba(212,175,55,0.35));
+  }
+
+  .foot-tagline{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    max-width:360px;
+    line-height:1.6;
+  }
+
+  .foot-links{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:34px;
+  }
+
+  .foot-links a{
+    color:var(--text-dim);
+    padding:4px 2px;
+    transition:color 0.2s ease;
+  }
+
+  .foot-links a:hover{ color:var(--gold-bright); }
+
+  .foot-dot{ color:var(--gold-dim); }
+
+  .foot-divider{
+    width:100%;
+    max-width:120px;
+    height:1px;
+    margin:0 auto 24px;
+    background:linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .foot-bottom{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--gold-dim);
+    text-transform:uppercase;
+  }
+
+  /* ---------- reveal on load ---------- */
+  .reveal{ opacity:0; transform:translateY(14px); animation:rise 0.9s ease forwards; }
+  .r1{ animation-delay:0.1s; }
+  .r2{ animation-delay:0.3s; }
+  .r3{ animation-delay:0.5s; }
+  .r4{ animation-delay:0.7s; }
+  @keyframes rise{ to{ opacity:1; transform:translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  }
+
+  /* ---------- INTRO OVERLAY ---------- */
+  .intro-overlay{
+    position:fixed; inset:0;
+    z-index:200;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.4s ease;
+  }
+  .intro-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .intro-overlay video{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+    background:#000;
+  }
+
+  .intro-loading{
+    position:absolute;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    color:var(--gold-dim);
+  }
+
+  .intro-skip{
+    position:absolute;
+    right:24px; bottom:24px;
+    z-index:2;
+    background:rgba(5,5,6,0.55);
+    border:1px solid var(--gold-dim);
+    color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .intro-skip:hover{
+    background:rgba(212,175,55,0.14);
+    color:var(--gold-bright);
+    border-color:var(--gold);
+  }
+
+  @media (max-width:560px){
+    .intro-skip{ right:16px; bottom:16px; padding:9px 14px; font-size:10px; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="bg-atmosphere" aria-hidden="true">
+  <div class="flow"></div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+</div>
+
+<div class="grain"></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-content">
+
+    <div class="logo-wrap reveal r1">
+      <!-- Reemplazá esta imagen por assets/logo-main.png -->
+      <img src="assets/logo-main.png" alt="OneRol" class="logo-main"
+           onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'logo-fallback',innerText:'ONEROL'}))">
+    </div>
+
+    <h1 class="sr-only">OneRol</h1>
+
+    <span class="eyebrow title-eyebrow reveal r2">Archivo del proyecto</span>
+
+    <p class="subtitle reveal r3">Roleplay <span>·</span> GTA: San Andreas <span>·</span> Carcer City</p>
+
+  </div>
+  <div class="scroll-cue reveal r4" aria-hidden="true"></div>
+</section>
+
+<!-- ============ PLACA DE CIERRE ============ -->
+<section class="plaque-section">
+  <div class="plaque">
+    <div class="plaque-glow" aria-hidden="true"></div>
+    <span class="eyebrow">Comunicado</span>
+    <h2>Carcer City cerró sus calles</h2>
+    <p>
+      <strong>OneRol</strong> nació como un proyecto de roleplay para GTA: San Andreas
+      sobre el mapa de Carcer City. Con el tiempo el rumbo del equipo cambió, y hoy
+      <strong>ya no estamos dedicados al mundo del roleplay en GTA</strong>.
+    </p>
+    <p>
+      El desarrollo de este proyecto quedó colgado y no va a continuar. Esta página
+      se mantiene como archivo, en memoria de lo que se construyó acá.
+    </p>
+    <span class="stamp">Desarrollo finalizado</span>
+  </div>
+</section>
+
+<!-- ============ CRÉDITOS Y AGRADECIMIENTOS ============ -->
+<section class="credits-section" id="credits">
+  <span class="eyebrow">Staff</span>
+  <h2>Créditos y agradecimientos</h2>
+  <p class="credits-intro">
+    Onerol se construyó entre varias manos a lo largo del tiempo. Gracias a cada
+    una de las personas que le puso trabajo, tiempo e ideas.
+  </p>
+
+  <div class="credits-panel">
+    <div class="credits-track" id="creditsTrack">
+      <table class="credits-table" id="creditsTable" aria-label="Créditos del equipo de OneRol">
+        <tbody id="creditsBodyA"><!-- se completa desde CREDITS en el script --></tbody>
+      </table>
+      <table class="credits-table" aria-hidden="true">
+        <tbody id="creditsBodyB"><!-- copia duplicada para el loop continuo --></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="credits-thanks">Y gracias a toda la comunidad que jugó, creó y acompañó el proyecto.</p>
+</section>
+
+<!-- ============ CTA A ONETALE ============ -->
+<section class="cta">
+  <div class="cta-glow" aria-hidden="true"></div>
+  <span class="eyebrow cta-eyebrow">¿Buscás lo que sigue en pie?</span>
+
+  <a class="cta-link" href="https://onetale.gg" id="ctaLink">
+    Click para ir a otro de nuestros proyectos
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6"/>
+    </svg>
+  </a>
+
+  <a class="cta-badge" href="https://onetale.gg" target="_blank" rel="noopener">
+    <!-- Reemplazá esta imagen por assets/logo-onetale.png (recomendado: cuadrada, 128x128 o más) -->
+    <img src="assets/logo-onetale.png" alt="Logo de Onetale" class="logo-onetale"
+         onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'logo-onetale-fallback',innerText:'OT'}))">
+    <span class="cta-badge-text">
+      <strong>Onetale</strong>
+      play.onetale.gg — servidor de Minecraft
+    </span>
+  </a>
+</section>
+
+<footer class="site-foot">
+  <div class="foot-top">
+    <a href="#top" class="foot-mark" aria-label="Volver arriba">
+      <img src="assets/logo-icon.png" alt=""
+           onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foot-mark-fallback',innerText:'OR'}))">
+    </a>
+    <p class="foot-tagline">Archivo estático del proyecto — Carcer City, GTA: San Andreas</p>
+  </div>
+
+  <nav class="foot-links" aria-label="Enlaces del pie de página">
+    <a href="#credits">Créditos</a>
+    <span class="foot-dot" aria-hidden="true">·</span>
+    <a href="https://onetale.gg" target="_blank" rel="noopener">Onetale ↗</a>
+    <span class="foot-dot" aria-hidden="true">·</span>
+    <a href="#top">Volver arriba ↑</a>
+  </nav>
+
+  <div class="foot-divider" aria-hidden="true"></div>
+
+  <p class="foot-bottom">© <span id="footYear"></span> OneRol — Todos los derechos reservados.</p>
+</footer>
+
+<!-- ============ REPRODUCTOR DE SOUNDTRACK ============ -->
+<div class="player-dock" id="playerDock">
+  <button class="play-btn" id="playBtn" aria-label="Reproducir soundtrack" aria-pressed="false">
+    <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+  <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="track-meta">
+    <span class="track-title">Tema principal</span>
+    <span class="track-sub">OneRol OST</span>
+  </div>
+  <input type="range" class="volume" id="volume" min="0" max="1" step="0.01" value="0.6" aria-label="Volumen">
+</div>
+
+<!-- Reemplazá la ruta por tu archivo real dentro de assets/, ej: assets/soundtrack.mp3 -->
+<audio id="bgAudio" src="assets/soundtrack.mp3" loop preload="none"></audio>
+
+<!-- ============ INTRO DE VIDEO (ONETALE) ============ -->
+<div class="intro-overlay" id="introOverlay" aria-hidden="true">
+  <span class="intro-loading" id="introLoading">Cargando intro…</span>
+  <!-- Reemplazá la ruta por tu archivo real dentro de assets/, ej: assets/intro-onetale.mp4 -->
+  <video id="introVideo" src="assets/intro-onetale.mp4" playsinline></video>
+  <button class="intro-skip" id="introSkip">Saltar intro →</button>
+</div>
+
+<script>
+  // ---------- Créditos ----------
+  // Para editar el staff, sumá o sacá líneas de acá. El orden queda igual al de la tabla.
+  const CREDITS = [
+    { role: 'Fundador y dirección del proyecto', name: 'Nooiz3' },	
+    { role: 'Dirección del proyecto', name: 'Calculador' },	
+    { role: 'Infraestructura y seguridad del proyecto', name: '0xCiBeR - TuServer.AR' },		
+    { role: 'Desarrollo del proyecto',              name: 'Nooiz3' },
+    { role: 'Desarrollo del proyecto',              name: 'Calculador' },
+    { role: 'Desarrollo del proyecto',              name: 'Weaita' },
+    { role: 'Diseño de 3d',                    name: 'Weaita' },	
+    { role: 'Diseño de Texturas',                    name: 'Nooiz3' },	
+    { role: 'Diseño de mapas',                    name: 'Nooiz3' },
+    { role: 'Diseño de mapas',                    name: 'Weaita' },	
+    { role: 'Diseño de mapas',                    name: 'Clark' },	
+    { role: 'Diseño de mapas',                    name: 'FaustO' },	
+    { role: 'Diseño de mapas',                    name: 'Babybat' },	
+    { role: 'Diseño de mapas',                    name: 'EduKenzay' },	
+    { role: 'Guion y lore',                       name: 'Nooiz3' },
+    { role: 'Gestión de la comunidad',             name: 'Clark' },
+    { role: 'Miembro del Staff',             name: 'ADNAguirre' },
+    { role: 'Miembro del Staff',             name: 'SandyPoynter' },
+    { role: 'Miembro del Staff',             name: 'EduKenzay' },
+    { role: 'Miembro del Staff',             name: 'AlexisChacon' },
+    { role: 'Miembro del Staff',             name: 'X3nd0r' },
+    { role: 'Miembro del Staff',             name: 'Agustin "IvannFT" Fortress' },		
+    { role: 'Miembro del Staff',             name: 'Yefan "TheGhos" Zayen' },
+    { role: 'Miembro del Staff',             name: 'BrooklynSanz' },
+    { role: 'Miembro del Staff',             name: 'Gema/Blossom' },	
+    { role: 'Miembro del Staff',             name: 'IsPriamo' },
+    { role: 'Miembro del Staff',             name: 'Manuel Mattus' },
+    { role: 'Miembro del Staff',             name: 'Windz' },	
+    { role: 'Miembro del Staff',             name: 'Ian Wolf' },
+    { role: 'Miembro del Staff',             name: 'Braulio S' },
+    { role: 'Edición de Vídeos',             name: 'Nooiz3' },	
+    { role: 'Arte y recursos visuales',           name: 'Nooiz3' },	
+    { role: 'Arte y recursos visuales',           name: 'Weaita' },	
+    { role: 'Recursos visuales',           name: 'Qesuani' },
+  ];
+
+  const creditsBodyA = document.querySelector('#creditsBodyA');
+  const creditsBodyB = document.querySelector('#creditsBodyB');
+  const creditsTrack = document.getElementById('creditsTrack');
+  const creditsTable = document.getElementById('creditsTable');
+
+  function buildCreditsRow(c){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="role">${c.role}</td><td class="name">${c.name}</td>`;
+    return tr;
+  }
+
+  CREDITS.forEach((c) => creditsBodyA.appendChild(buildCreditsRow(c)));
+  CREDITS.forEach((c) => creditsBodyB.appendChild(buildCreditsRow(c)));
+
+  // La altura de una sola tanda de créditos define cuánto tiene que recorrer
+  // el loop antes de repetirse, así queda continuo y sin saltos.
+  function sizeCreditsCrawl(){
+    const h = creditsTable.offsetHeight;
+    creditsTrack.style.setProperty('--credits-h', h + 'px');
+    creditsTrack.style.setProperty('--credits-duration', Math.max(18, CREDITS.length * 3.4) + 's');
+  }
+
+  sizeCreditsCrawl();
+  window.addEventListener('resize', sizeCreditsCrawl);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(sizeCreditsCrawl);
+  }
+
+  const audio    = document.getElementById('bgAudio');
+  const footYear = document.getElementById('footYear');
+  if (footYear) footYear.textContent = new Date().getFullYear();
+  const dock     = document.getElementById('playerDock');
+  const playBtn  = document.getElementById('playBtn');
+  const iconPlay = document.getElementById('iconPlay');
+  const iconPause= document.getElementById('iconPause');
+  const volume   = document.getElementById('volume');
+
+  audio.volume = parseFloat(volume.value);
+
+  playBtn.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play().catch(() => {
+        // No hay archivo de audio cargado todavía en assets/soundtrack.mp3
+        console.warn('No se pudo reproducir el soundtrack. Verificá que assets/soundtrack.mp3 exista.');
+      });
+    } else {
+      audio.pause();
+    }
+  });
+
+  audio.addEventListener('play', () => {
+    dock.classList.add('playing');
+    iconPlay.style.display = 'none';
+    iconPause.style.display = 'block';
+    playBtn.setAttribute('aria-pressed', 'true');
+    playBtn.setAttribute('aria-label', 'Pausar soundtrack');
+  });
+
+  audio.addEventListener('pause', () => {
+    dock.classList.remove('playing');
+    iconPlay.style.display = 'block';
+    iconPause.style.display = 'none';
+    playBtn.setAttribute('aria-pressed', 'false');
+    playBtn.setAttribute('aria-label', 'Reproducir soundtrack');
+  });
+
+  volume.addEventListener('input', () => {
+    audio.volume = parseFloat(volume.value);
+  });
+
+  // ---------- Intro de video antes de ir a Onetale ----------
+  const ctaLink      = document.getElementById('ctaLink');
+  const introOverlay = document.getElementById('introOverlay');
+  const introVideo   = document.getElementById('introVideo');
+  const introSkip     = document.getElementById('introSkip');
+  const introLoading  = document.getElementById('introLoading');
+  const DESTINATION   = 'https://onetale.gg';
+
+  let redirecting = false;
+  function goToOnetale(){
+    if (redirecting) return;
+    redirecting = true;
+    window.location.href = DESTINATION;
+  }
+
+  ctaLink.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Si el video no existe o falla, no dejamos al usuario colgado: redirige igual.
+    const failSafe = setTimeout(goToOnetale, 6000);
+    // El video dura ~12s. Este es el techo real: redirige a los 13s pase lo que pase,
+    // por si el evento 'ended' no llega a dispararse (loop, codec raro, etc.).
+    let hardStop = null;
+
+    introOverlay.classList.add('active');
+    introOverlay.setAttribute('aria-hidden', 'false');
+    audio.pause(); // el soundtrack de fondo no compite con el audio del video
+
+    introVideo.currentTime = 0;
+    const playPromise = introVideo.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.then(() => {
+        introLoading.style.display = 'none';
+        clearTimeout(failSafe);
+        hardStop = setTimeout(goToOnetale, 13000);
+      }).catch(() => {
+        // Autoplay con audio bloqueado o video ausente: seguimos igual.
+        goToOnetale();
+      });
+    }
+
+    introVideo.addEventListener('playing', () => {
+      introLoading.style.display = 'none';
+      clearTimeout(failSafe);
+      if (!hardStop) hardStop = setTimeout(goToOnetale, 13000);
+    }, { once:true });
+
+    introVideo.addEventListener('error', () => {
+      clearTimeout(failSafe);
+      clearTimeout(hardStop);
+      goToOnetale();
+    }, { once:true });
+
+    introVideo.addEventListener('ended', () => {
+      clearTimeout(hardStop);
+      goToOnetale();
+    }, { once:true });
+  });
+
+  introSkip.addEventListener('click', goToOnetale);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && introOverlay.classList.contains('active')) {
+      goToOnetale();
+    }
+  });
+</script>
+
+</body>
+</html>
