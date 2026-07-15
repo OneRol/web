@@ -538,14 +538,48 @@
 
   /* ---------- CRÉDITOS ---------- */
   .credits-section{
+    position:relative;
+    overflow:hidden;
     padding:14vh 6vw;
     text-align:center;
     border-top:1px solid var(--line);
   }
 
-  .credits-section .eyebrow{ display:block; margin-bottom:16px; }
+  /* ---- fondo de video ambiente para TODA la sección de créditos ---- */
+  .credits-section-bg{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    background:#000;
+  }
 
-  .credits-section h2{
+  .credits-section-bg-overlay{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at center, rgba(5,5,6,0.25) 0%, rgba(5,5,6,0.86) 68%, rgba(5,5,6,0.97) 100%),
+      linear-gradient(rgba(5,5,6,0.62), rgba(5,5,6,0.62));
+  }
+
+  .credits-section-bg-overlay::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--gold-dim);
+    mix-blend-mode:color;
+    opacity:0.14;
+  }
+
+  .credits-content{
+    position:relative;
+    z-index:1;
+  }
+
+  .credits-content .eyebrow{ display:block; margin-bottom:16px; }
+
+  .credits-content h2{
     font-family:'Bebas Neue', sans-serif;
     font-size:clamp(30px, 5vw, 44px);
     letter-spacing:0.03em;
@@ -561,16 +595,46 @@
     line-height:1.7;
   }
 
+  /* ---- panel de créditos con marco de "consola" ---- */
   .credits-panel{
     position:relative;
     max-width:620px;
     margin:0 auto;
-    height:clamp(320px, 48vh, 460px);
+    display:flex;
+    flex-direction:column;
+    height:clamp(360px, 50vh, 500px);
+    background:rgba(6,6,8,0.94);
+    border:1px solid var(--gold-dim);
+    border-radius:8px;
+    box-shadow:0 0 40px rgba(212,175,55,0.12), 0 0 0 1px rgba(212,175,55,0.05) inset;
     overflow:hidden;
-    background:var(--bg-panel);
-    border:1px solid var(--line);
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
-    mask-image:linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+  }
+
+  .credits-console-header{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+    padding:9px 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,0.02);
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .credits-console-title{
+    margin-left:6px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .credits-console-body{
+    position:relative;
+    flex:1 1 auto;
+    overflow:hidden;
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 10%, #000 88%, transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0, #000 10%, #000 88%, transparent 100%);
   }
 
   /* ---- fondo de video rotando, tipo "recuerdos" en blanco y negro ---- */
@@ -589,6 +653,10 @@
     transition:opacity 1.4s ease;
     /* blanco y negro + contraste alto + oscurecido, look de "película vieja" */
     filter:grayscale(1) contrast(1.2) brightness(0.5) sepia(0.1);
+  }
+
+  .credits-bg-video.is-ambient{
+    filter:grayscale(1) contrast(1.15) brightness(0.38) sepia(0.08) blur(3px);
   }
 
   .credits-bg-video.active{ opacity:1; }
@@ -622,18 +690,8 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .credits-bg-videos{ display:none; }
+    .credits-bg-videos, .credits-section-bg{ display:none; }
   }
-
-  .credits-panel::before, .credits-panel::after{
-    content:"";
-    position:absolute;
-    width:18px; height:18px;
-    border:1px solid var(--gold-dim);
-    z-index:2;
-  }
-  .credits-panel::before{ top:8px; left:8px; border-right:none; border-bottom:none; }
-  .credits-panel::after{ bottom:8px; right:8px; border-left:none; border-top:none; }
 
   .credits-track{
     position:absolute;
@@ -695,7 +753,7 @@
 
   @media (prefers-reduced-motion: reduce){
     .credits-track{ animation:none; position:static; top:auto; }
-    .credits-panel{ height:auto; -webkit-mask-image:none; mask-image:none; overflow:visible; }
+    .credits-console-body{ height:auto; -webkit-mask-image:none; mask-image:none; overflow:visible; }
     .credits-track table[aria-hidden="true"]{ display:none; }
   }
 
@@ -1397,30 +1455,47 @@
 
 <!-- ============ CRÉDITOS Y AGRADECIMIENTOS ============ -->
 <section class="credits-section" id="credits">
-  <span class="eyebrow">Staff</span>
-  <h2>Créditos y agradecimientos</h2>
-  <p class="credits-intro">
-    Onerol se construyó entre varias manos a lo largo del tiempo. Gracias a cada
-    una de las personas que le puso trabajo, tiempo e ideas.
-  </p>
 
-  <div class="credits-panel">
-    <div class="credits-bg-videos" id="creditsBgVideos" aria-hidden="true">
-      <div class="credits-bg-video" data-slot="0"></div>
-      <div class="credits-bg-video" data-slot="1"></div>
+  <div class="credits-section-bg" aria-hidden="true">
+    <div class="credits-bg-videos" id="creditsSectionBgVideos">
+      <div class="credits-bg-video is-ambient" data-slot="0"></div>
+      <div class="credits-bg-video is-ambient" data-slot="1"></div>
     </div>
-    <div class="credits-bg-overlay" aria-hidden="true"></div>
-    <div class="credits-track" id="creditsTrack">
-      <table class="credits-table" id="creditsTable" aria-label="Créditos del equipo de OneRol">
-        <tbody id="creditsBodyA"><!-- se completa desde CREDITS en el script --></tbody>
-      </table>
-      <table class="credits-table" aria-hidden="true">
-        <tbody id="creditsBodyB"><!-- copia duplicada para el loop continuo --></tbody>
-      </table>
-    </div>
+    <div class="credits-section-bg-overlay"></div>
   </div>
 
-  <p class="credits-thanks">Y gracias a toda la comunidad que jugó, creó y acompañó el proyecto.</p>
+  <div class="credits-content">
+    <span class="eyebrow">Staff</span>
+    <h2>Créditos y agradecimientos</h2>
+    <p class="credits-intro">
+      Onerol se construyó entre varias manos a lo largo del tiempo. Gracias a cada
+      una de las personas que le puso trabajo, tiempo e ideas.
+    </p>
+
+    <div class="credits-panel">
+      <div class="credits-console-header">
+        <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+        <span class="credits-console-title">OneRol — creditos.log</span>
+      </div>
+      <div class="credits-console-body">
+        <div class="credits-bg-videos" id="creditsBgVideos" aria-hidden="true">
+          <div class="credits-bg-video" data-slot="0"></div>
+          <div class="credits-bg-video" data-slot="1"></div>
+        </div>
+        <div class="credits-bg-overlay" aria-hidden="true"></div>
+        <div class="credits-track" id="creditsTrack">
+          <table class="credits-table" id="creditsTable" aria-label="Créditos del equipo de OneRol">
+            <tbody id="creditsBodyA"><!-- se completa desde CREDITS en el script --></tbody>
+          </table>
+          <table class="credits-table" aria-hidden="true">
+            <tbody id="creditsBodyB"><!-- copia duplicada para el loop continuo --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="credits-thanks">Y gracias a toda la comunidad que jugó, creó y acompañó el proyecto.</p>
+  </div>
 </section>
 
 <!-- ============ CTA A ONETALE ============ -->
@@ -1565,49 +1640,49 @@
   // Podés sumar más simplemente agregando el ID del video a este array
   // (el ID es lo que va después de "v=" en la URL de YouTube).
   const CREDITS_VIDEOS = [
-    'e-03IHeRGqs', // Presentación Oficial: Proyecto OneRol
-    '_dIZu_w6qV8'  // [MTA:SA] Snippet #5 - OneRol, Parte I
+    'e-7gze1bi5tcg', // Presentación Oficial: Proyecto OneRol
+    '4pEyW2LIs3c',  // [MTA:SA] Snippet #5 - OneRol, Parte I
+    'lEBeE2zol4M'  // [MTA:SA] Snippet #5 - OneRol, Parte I	
   ];
 
-  (function initCreditsBgVideos(){
-    const wrap  = document.getElementById('creditsBgVideos');
+  function embedUrl(id){
+    // youtube-nocookie.com evita el error 153 ("Video player configuration
+    // error") que tira el dominio youtube.com normal en varios navegadores
+    // cuando el iframe no manda un referrer válido.
+    return 'https://www.youtube-nocookie.com/embed/' + id +
+      '?autoplay=1&mute=1&loop=1&playlist=' + id +
+      '&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1';
+  }
+
+  function loadVideoInto(slotEl, id){
+    slotEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = embedUrl(id);
+    iframe.title = 'Fondo de créditos — OneRol';
+    iframe.setAttribute('allow', 'autoplay; encrypted-media');
+    iframe.setAttribute('frameborder', '0');
+    // Requerido por YouTube para no disparar el error 153 en algunos
+    // navegadores/entornos donde el referrer por defecto viene bloqueado.
+    iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    slotEl.appendChild(iframe);
+  }
+
+  // Crea un rotador de videos independiente para un contenedor dado (el
+  // fondo ambiente de toda la sección y la pantalla de la consola usan
+  // cada uno el suyo, así no quedan sincronizados y se ven distintos).
+  function createBgVideoRotator(wrapId, videos, rotateMs){
+    const wrap  = document.getElementById(wrapId);
     const slots = wrap ? wrap.querySelectorAll('.credits-bg-video') : null;
-    if (!wrap || !slots || !slots.length || !CREDITS_VIDEOS.length) return;
+    if (!wrap || !slots || !slots.length || !videos.length) return null;
 
-    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) { wrap.remove(); return; }
-
-    const ROTATE_MS = 16000; // cada cuánto cambia de video
-    let current     = 0;
-    let activeSlot  = 0;
-    let started     = false;
-
-    function embedUrl(id){
-      // youtube-nocookie.com evita el error 153 ("Video player configuration
-      // error") que tira el dominio youtube.com normal en varios navegadores
-      // cuando el iframe no manda un referrer válido.
-      return 'https://www.youtube-nocookie.com/embed/' + id +
-        '?autoplay=1&mute=1&loop=1&playlist=' + id +
-        '&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1';
-    }
-
-    function loadInto(slotEl, id){
-      slotEl.innerHTML = '';
-      const iframe = document.createElement('iframe');
-      iframe.src = embedUrl(id);
-      iframe.title = 'Fondo de créditos — OneRol';
-      iframe.setAttribute('allow', 'autoplay; encrypted-media');
-      iframe.setAttribute('frameborder', '0');
-      // Requerido por YouTube para no disparar el error 153 en algunos
-      // navegadores/entornos donde el referrer por defecto viene bloqueado.
-      iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-      slotEl.appendChild(iframe);
-    }
+    let current    = 0;
+    let activeSlot = 0;
+    let started    = false;
 
     function rotate(){
       const nextSlot = activeSlot === 0 ? 1 : 0;
-      current = (current + 1) % CREDITS_VIDEOS.length;
-      loadInto(slots[nextSlot], CREDITS_VIDEOS[current]);
+      current = (current + 1) % videos.length;
+      loadVideoInto(slots[nextSlot], videos[current]);
 
       // Pequeña espera para que el próximo video ya esté cargando antes
       // del crossfade, así no se ve un cuadro negro en la transición.
@@ -1618,12 +1693,36 @@
       }, 700);
     }
 
-    function start(){
-      if (started) return;
-      started = true;
-      loadInto(slots[activeSlot], CREDITS_VIDEOS[current]);
-      slots[activeSlot].classList.add('active');
-      window.setInterval(rotate, ROTATE_MS);
+    return {
+      start: function () {
+        if (started) return;
+        started = true;
+        loadVideoInto(slots[activeSlot], videos[current]);
+        slots[activeSlot].classList.add('active');
+        window.setInterval(rotate, rotateMs);
+      }
+    };
+  }
+
+  (function initCreditsBgVideos(){
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      const sectionBg = document.querySelector('.credits-section-bg');
+      const consoleBg = document.getElementById('creditsBgVideos');
+      if (sectionBg) sectionBg.remove();
+      if (consoleBg) consoleBg.remove();
+      return;
+    }
+
+    // Fondo ambiente detrás de toda la sección (fuera del recuadro).
+    const ambient = createBgVideoRotator('creditsSectionBgVideos', CREDITS_VIDEOS, 18000);
+    // Pantalla dentro del recuadro tipo consola. Usa el orden invertido y
+    // arranca con un pequeño delay para que no rote igual que el ambiente.
+    const console_ = createBgVideoRotator('creditsBgVideos', CREDITS_VIDEOS.slice().reverse(), 16000);
+
+    function startAll(){
+      if (ambient) ambient.start();
+      if (console_) window.setTimeout(function () { console_.start(); }, 3500);
     }
 
     // Recién arranca a cargar/reproducir videos cuando la sección de
@@ -1632,12 +1731,12 @@
     if ('IntersectionObserver' in window && creditsSection) {
       const io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) { start(); io.disconnect(); }
+          if (entry.isIntersecting) { startAll(); io.disconnect(); }
         });
       }, { threshold: 0.15 });
       io.observe(creditsSection);
     } else {
-      start();
+      startAll();
     }
   })();
 
