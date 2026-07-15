@@ -1176,6 +1176,166 @@
     .intro-skip{ right:16px; bottom:16px; padding:9px 14px; font-size:10px; }
   }
 
+  /* ---------- EASTER EGG: MINIJUEGO "CARCER DRIVE" ---------- */
+  .game-overlay{
+    position:fixed;
+    inset:0;
+    z-index:400;
+    background:rgba(2,2,3,0.96);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.35s ease;
+  }
+
+  .game-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .game-wrap{
+    position:relative;
+    width:min(380px, 100%);
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .game-box{
+    background:rgba(6,6,8,0.97);
+    border:1px solid var(--gold-dim);
+    border-radius:10px;
+    box-shadow:0 0 50px rgba(212,175,55,0.18), 0 0 0 1px rgba(212,175,55,0.05) inset;
+    overflow:hidden;
+  }
+
+  .game-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,0.02);
+  }
+
+  .game-header-left{ display:flex; align-items:center; gap:6px; }
+
+  .game-title{
+    margin-left:6px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .game-close{
+    background:none;
+    border:1px solid var(--gold-dim);
+    color:var(--text-dim);
+    font-family:inherit;
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:4px 9px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .game-close:hover, .game-close:focus-visible{
+    color:var(--gold-bright);
+    border-color:var(--gold-bright);
+  }
+
+  .game-canvas-wrap{
+    position:relative;
+    aspect-ratio:3 / 4;
+    background:#0a0a0c;
+  }
+
+  #gameCanvas{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  .game-hud{
+    position:absolute;
+    top:10px; left:12px; right:12px;
+    display:flex;
+    justify-content:space-between;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--gold-bright);
+    text-shadow:0 1px 4px rgba(0,0,0,0.9);
+    pointer-events:none;
+  }
+
+  .game-overlay-msg{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    padding:24px;
+    background:rgba(2,2,3,0.6);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease;
+  }
+
+  .game-overlay-msg.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .game-overlay-msg h3{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:26px;
+    letter-spacing:0.03em;
+    color:var(--gold-bright);
+  }
+
+  .game-overlay-msg p{
+    font-size:12px;
+    color:var(--text-dim);
+    max-width:270px;
+    line-height:1.65;
+  }
+
+  .game-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--bg);
+    background:var(--gold);
+    border:none;
+    padding:10px 22px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+
+  .game-btn:hover, .game-btn:focus-visible{ background:var(--gold-bright); }
+
+  .game-footer{
+    padding:9px 14px;
+    font-size:9.5px;
+    letter-spacing:0.04em;
+    color:var(--text-dim);
+    border-top:1px solid var(--line);
+    text-align:center;
+  }
+
+  .game-footer strong{ color:var(--gold-dim); letter-spacing:0.1em; }
+
 </style>
 </head>
 <body>
@@ -1640,9 +1800,9 @@
   // Podés sumar más simplemente agregando el ID del video a este array
   // (el ID es lo que va después de "v=" en la URL de YouTube).
   const CREDITS_VIDEOS = [
-    'e-7gze1bi5tcg', // Presentación Oficial: Proyecto OneRol
-    '4pEyW2LIs3c',  // [MTA:SA] Snippet #5 - OneRol, Parte I
-    'lEBeE2zol4M'  // [MTA:SA] Snippet #5 - OneRol, Parte I	
+    '4pEyW2LIs3c',
+    '7gze1bi5tcg',
+    'lEBeE2zol4M'	
   ];
 
   function embedUrl(id){
@@ -1925,6 +2085,301 @@
       goToOnetale();
     }
   });
+</script>
+
+<!-- ============ EASTER EGG: MINIJUEGO "CARCER DRIVE" ============ -->
+<!-- Se activa escribiendo "CARCER" en cualquier parte de la página. -->
+<div class="game-overlay" id="gameOverlay" aria-hidden="true">
+  <div class="game-wrap">
+    <div class="game-box">
+      <div class="game-header">
+        <div class="game-header-left">
+          <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+          <span class="game-title">Carcer Drive</span>
+        </div>
+        <button type="button" class="game-close" id="gameClose">Cerrar (Esc)</button>
+      </div>
+      <div class="game-canvas-wrap">
+        <canvas id="gameCanvas" width="360" height="480" aria-label="Minijuego Carcer Drive: esquivá el tráfico"></canvas>
+        <div class="game-hud" aria-hidden="true">
+          <span id="gameScoreHud">Distancia: 0 m</span>
+          <span id="gameBestHud">Récord: 0 m</span>
+        </div>
+        <div class="game-overlay-msg show" id="gameStartMsg">
+          <h3>Carcer Drive</h3>
+          <p>Encontraste el Easter egg. Manejá con ← → (o A / D) y esquivá el tráfico de Carcer City el mayor tiempo posible.</p>
+          <button type="button" class="game-btn" id="gameStartBtn">Arrancar motor</button>
+        </div>
+        <div class="game-overlay-msg" id="gameOverMsg">
+          <h3>Chocaste</h3>
+          <p id="gameOverText">Llegaste a 0 metros.</p>
+          <button type="button" class="game-btn" id="gameRetryBtn">Reintentar</button>
+        </div>
+      </div>
+      <div class="game-footer">Código secreto: escribí <strong>CARCER</strong> en cualquier parte de la página</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // ---------- Detección del código secreto "CARCER" ----------
+    const SECRET = 'carcer';
+    let typedIdx = 0;
+
+    window.addEventListener('keydown', function (e) {
+      // No interceptar mientras el usuario escribe en un campo real.
+      const tag = (e.target && e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
+
+      const key = e.key.toLowerCase();
+      if (key === SECRET[typedIdx]) {
+        typedIdx++;
+        if (typedIdx === SECRET.length) {
+          typedIdx = 0;
+          openGame();
+        }
+      } else {
+        typedIdx = (key === SECRET[0]) ? 1 : 0;
+      }
+    });
+
+    // ---------- Overlay ----------
+    const overlay    = document.getElementById('gameOverlay');
+    const closeBtn    = document.getElementById('gameClose');
+    const startMsg    = document.getElementById('gameStartMsg');
+    const overMsg     = document.getElementById('gameOverMsg');
+    const overText    = document.getElementById('gameOverText');
+    const startBtn    = document.getElementById('gameStartBtn');
+    const retryBtn    = document.getElementById('gameRetryBtn');
+    const scoreHud    = document.getElementById('gameScoreHud');
+    const bestHud     = document.getElementById('gameBestHud');
+    const canvas      = document.getElementById('gameCanvas');
+    const ctx         = canvas ? canvas.getContext('2d') : null;
+    if (!overlay || !ctx) return;
+
+    const BEST_KEY = 'onerolCarcerDriveBest';
+    let best = 0;
+    try { best = parseFloat(localStorage.getItem(BEST_KEY)) || 0; } catch (e) {}
+
+    function openGame(){
+      overlay.classList.add('active');
+      overlay.setAttribute('aria-hidden', 'false');
+      resetGame();
+      showMsg(startMsg);
+      updateHud();
+    }
+
+    function closeGame(){
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+      stopLoop();
+    }
+
+    closeBtn.addEventListener('click', closeGame);
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay.classList.contains('active')) closeGame();
+    });
+
+    function showMsg(el){
+      startMsg.classList.remove('show');
+      overMsg.classList.remove('show');
+      if (el) el.classList.add('show');
+    }
+
+    // ---------- Estado del juego ----------
+    const W = canvas.width, H = canvas.height;
+    const ROAD_LEFT = 40, ROAD_RIGHT = W - 40;
+    const LANES = 3;
+    const LANE_W = (ROAD_RIGHT - ROAD_LEFT) / LANES;
+    const CAR_W = 34, CAR_H = 56;
+
+    let player, obstacles, speed, distance, dashOffset, running, rafId, lastT;
+    let leftHeld = false, rightHeld = false;
+
+    function laneX(lane){ return ROAD_LEFT + LANE_W * lane + LANE_W / 2; }
+
+    function resetGame(){
+      player = { lane: 1, x: laneX(1), y: H - 100, targetLane: 1 };
+      obstacles = [];
+      speed = 220;       // px/seg, sube con el tiempo
+      distance = 0;
+      dashOffset = 0;
+      running = false;
+      spawnTimer = 0;
+    }
+
+    let spawnTimer = 0;
+
+    function spawnObstacle(){
+      const lane = Math.floor(Math.random() * LANES);
+      obstacles.push({ lane: lane, x: laneX(lane), y: -CAR_H, w: CAR_W, h: CAR_H, hue: Math.random() });
+    }
+
+    function stopLoop(){
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    function startRun(){
+      resetGame();
+      running = true;
+      lastT = performance.now();
+      showMsg(null);
+      updateHud();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function endRun(){
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      const meters = Math.floor(distance);
+      if (meters > best) {
+        best = meters;
+        try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {}
+      }
+      overText.textContent = 'Llegaste a ' + meters + ' metros.';
+      updateHud();
+      showMsg(overMsg);
+    }
+
+    function updateHud(){
+      scoreHud.textContent = 'Distancia: ' + Math.floor(distance) + ' m';
+      bestHud.textContent  = 'Récord: ' + Math.floor(best) + ' m';
+    }
+
+    // ---------- Controles ----------
+    window.addEventListener('keydown', function (e) {
+      if (!overlay.classList.contains('active')) return;
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].indexOf(e.key) !== -1) e.preventDefault();
+
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        player.targetLane = Math.max(0, player.targetLane - 1);
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        player.targetLane = Math.min(LANES - 1, player.targetLane + 1);
+      }
+    });
+
+    // Soporte táctil simple: tocar mitad izquierda/derecha del canvas cambia de carril.
+    canvas.addEventListener('touchstart', function (e) {
+      if (!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const touchX = e.touches[0].clientX - rect.left;
+      if (touchX < rect.width / 2) {
+        player.targetLane = Math.max(0, player.targetLane - 1);
+      } else {
+        player.targetLane = Math.min(LANES - 1, player.targetLane + 1);
+      }
+    }, { passive: true });
+
+    startBtn.addEventListener('click', startRun);
+    retryBtn.addEventListener('click', startRun);
+
+    // ---------- Loop principal ----------
+    function loop(now){
+      if (!running) return;
+      const dt = Math.min(0.05, (now - lastT) / 1000);
+      lastT = now;
+
+      // velocidad y distancia
+      speed = Math.min(560, speed + dt * 6);
+      distance += speed * dt / 10;
+      dashOffset = (dashOffset + speed * dt) % 40;
+
+      // el auto se desliza suave hacia el carril elegido
+      const tx = laneX(player.targetLane);
+      player.x += (tx - player.x) * Math.min(1, dt * 10);
+      player.lane = player.targetLane;
+
+      // spawnea tráfico
+      spawnTimer -= dt;
+      const spawnEvery = Math.max(0.35, 1.1 - distance / 4000);
+      if (spawnTimer <= 0) {
+        spawnObstacle();
+        spawnTimer = spawnEvery;
+      }
+
+      // mueve obstáculos y chequea colisión
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.y += speed * dt;
+
+        const px = player.x - CAR_W / 2, py = player.y - CAR_H / 2;
+        const ox = o.x - o.w / 2, oy = o.y - o.h / 2;
+        const hit = px < ox + o.w && px + CAR_W > ox && py < oy + o.h && py + CAR_H > oy;
+        if (hit) { endRun(); return; }
+
+        if (o.y - o.h / 2 > H) obstacles.splice(i, 1);
+      }
+
+      updateHud();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    // ---------- Dibujo ----------
+    function draw(){
+      ctx.clearRect(0, 0, W, H);
+
+      // asfalto
+      ctx.fillStyle = '#0a0a0c';
+      ctx.fillRect(0, 0, W, H);
+
+      // veredas laterales
+      ctx.fillStyle = '#151109';
+      ctx.fillRect(0, 0, ROAD_LEFT, H);
+      ctx.fillRect(ROAD_RIGHT, 0, W - ROAD_RIGHT, H);
+
+      // borde dorado de la calle
+      ctx.strokeStyle = 'rgba(212,175,55,0.35)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ROAD_LEFT, 0); ctx.lineTo(ROAD_LEFT, H);
+      ctx.moveTo(ROAD_RIGHT, 0); ctx.lineTo(ROAD_RIGHT, H);
+      ctx.stroke();
+
+      // líneas de carril (discontinuas, con sensación de movimiento)
+      ctx.strokeStyle = 'rgba(234,230,218,0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([18, 18]);
+      ctx.lineDashOffset = -dashOffset;
+      for (let l = 1; l < LANES; l++) {
+        const x = ROAD_LEFT + LANE_W * l;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // tráfico
+      obstacles.forEach(function (o) {
+        drawCar(o.x, o.y, '#8a5c1e', '#3a2708');
+      });
+
+      // auto del jugador
+      drawCar(player.x, player.y, '#f6d878', '#6e5a20');
+    }
+
+    function drawCar(cx, cy, body, roof){
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(-CAR_W / 2 + 3, -CAR_H / 2 + 5, CAR_W, CAR_H);
+      ctx.fillStyle = body;
+      ctx.fillRect(-CAR_W / 2, -CAR_H / 2, CAR_W, CAR_H);
+      ctx.fillStyle = roof;
+      ctx.fillRect(-CAR_W / 2 + 5, -CAR_H / 2 + 10, CAR_W - 10, CAR_H - 26);
+      ctx.fillStyle = '#eae6da';
+      ctx.fillRect(-CAR_W / 2 + 3, -CAR_H / 2 + 2, CAR_W - 6, 4);
+      ctx.fillRect(-CAR_W / 2 + 3, CAR_H / 2 - 6, CAR_W - 6, 4);
+      ctx.restore();
+    }
+
+    resetGame();
+    draw();
+  })();
 </script>
 
 </body>
