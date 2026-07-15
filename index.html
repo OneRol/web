@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>OneRol — Archivo del proyecto</title>
 <meta name="description" content="OneRol. Roleplay para GTA: San Andreas en Carcer City. Desarrollo cerrado.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -572,6 +573,58 @@
     mask-image:linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
   }
 
+  /* ---- fondo de video rotando, tipo "recuerdos" en blanco y negro ---- */
+  .credits-bg-videos{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    background:#000;
+  }
+
+  .credits-bg-video{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    transition:opacity 1.4s ease;
+    /* blanco y negro + contraste alto + oscurecido, look de "película vieja" */
+    filter:grayscale(1) contrast(1.2) brightness(0.5) sepia(0.1);
+  }
+
+  .credits-bg-video.active{ opacity:1; }
+
+  .credits-bg-video iframe{
+    position:absolute;
+    top:50%; left:50%;
+    width:145%; height:145%;
+    transform:translate(-50%, -50%);
+    border:0;
+    pointer-events:none;
+  }
+
+  .credits-bg-overlay{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at center, rgba(5,5,6,0.30) 0%, rgba(5,5,6,0.80) 72%, rgba(5,5,6,0.95) 100%),
+      linear-gradient(rgba(5,5,6,0.5), rgba(5,5,6,0.5));
+  }
+
+  .credits-bg-overlay::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--gold-dim);
+    mix-blend-mode:color;
+    opacity:0.16;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .credits-bg-videos{ display:none; }
+  }
+
   .credits-panel::before, .credits-panel::after{
     content:"";
     position:absolute;
@@ -586,6 +639,7 @@
     position:absolute;
     top:100%;
     left:0; right:0;
+    z-index:2;
     animation:credits-crawl linear infinite;
     animation-duration:var(--credits-duration, 30s);
   }
@@ -1351,6 +1405,11 @@
   </p>
 
   <div class="credits-panel">
+    <div class="credits-bg-videos" id="creditsBgVideos" aria-hidden="true">
+      <div class="credits-bg-video" data-slot="0"></div>
+      <div class="credits-bg-video" data-slot="1"></div>
+    </div>
+    <div class="credits-bg-overlay" aria-hidden="true"></div>
     <div class="credits-track" id="creditsTrack">
       <table class="credits-table" id="creditsTable" aria-label="Créditos del equipo de OneRol">
         <tbody id="creditsBodyA"><!-- se completa desde CREDITS en el script --></tbody>
@@ -1500,6 +1559,87 @@
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(sizeCreditsCrawl);
   }
+
+  // ---------- Videos de YouTube de fondo en Créditos ("recuerdos") ----------
+  // IDs tomados del canal de YouTube de OneRol (youtube.com/@onerol/videos).
+  // Podés sumar más simplemente agregando el ID del video a este array
+  // (el ID es lo que va después de "v=" en la URL de YouTube).
+  const CREDITS_VIDEOS = [
+    'e-03IHeRGqs', // Presentación Oficial: Proyecto OneRol
+    '_dIZu_w6qV8'  // [MTA:SA] Snippet #5 - OneRol, Parte I
+  ];
+
+  (function initCreditsBgVideos(){
+    const wrap  = document.getElementById('creditsBgVideos');
+    const slots = wrap ? wrap.querySelectorAll('.credits-bg-video') : null;
+    if (!wrap || !slots || !slots.length || !CREDITS_VIDEOS.length) return;
+
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) { wrap.remove(); return; }
+
+    const ROTATE_MS = 16000; // cada cuánto cambia de video
+    let current     = 0;
+    let activeSlot  = 0;
+    let started     = false;
+
+    function embedUrl(id){
+      // youtube-nocookie.com evita el error 153 ("Video player configuration
+      // error") que tira el dominio youtube.com normal en varios navegadores
+      // cuando el iframe no manda un referrer válido.
+      return 'https://www.youtube-nocookie.com/embed/' + id +
+        '?autoplay=1&mute=1&loop=1&playlist=' + id +
+        '&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1';
+    }
+
+    function loadInto(slotEl, id){
+      slotEl.innerHTML = '';
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl(id);
+      iframe.title = 'Fondo de créditos — OneRol';
+      iframe.setAttribute('allow', 'autoplay; encrypted-media');
+      iframe.setAttribute('frameborder', '0');
+      // Requerido por YouTube para no disparar el error 153 en algunos
+      // navegadores/entornos donde el referrer por defecto viene bloqueado.
+      iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      slotEl.appendChild(iframe);
+    }
+
+    function rotate(){
+      const nextSlot = activeSlot === 0 ? 1 : 0;
+      current = (current + 1) % CREDITS_VIDEOS.length;
+      loadInto(slots[nextSlot], CREDITS_VIDEOS[current]);
+
+      // Pequeña espera para que el próximo video ya esté cargando antes
+      // del crossfade, así no se ve un cuadro negro en la transición.
+      window.setTimeout(function () {
+        slots[nextSlot].classList.add('active');
+        slots[activeSlot].classList.remove('active');
+        activeSlot = nextSlot;
+      }, 700);
+    }
+
+    function start(){
+      if (started) return;
+      started = true;
+      loadInto(slots[activeSlot], CREDITS_VIDEOS[current]);
+      slots[activeSlot].classList.add('active');
+      window.setInterval(rotate, ROTATE_MS);
+    }
+
+    // Recién arranca a cargar/reproducir videos cuando la sección de
+    // créditos entra en pantalla, para no gastar recursos de entrada.
+    const creditsSection = document.getElementById('credits');
+    if ('IntersectionObserver' in window && creditsSection) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) { start(); io.disconnect(); }
+        });
+      }, { threshold: 0.15 });
+      io.observe(creditsSection);
+    } else {
+      start();
+    }
+  })();
 
   const audio    = document.getElementById('bgAudio');
   const footYear = document.getElementById('footYear');
